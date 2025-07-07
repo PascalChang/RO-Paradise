@@ -274,25 +274,24 @@
         </header>
         
         <main>
-            <div v-if="loading" class="loading">
+            <div id="loading" class="loading">
                 載入中...
             </div>
             
-            <div v-else-if="error" class="error">
+            <div id="error" class="error" style="display: none;">
                 <h3>載入失敗</h3>
-                <p>{{ error }}</p>
-                <button @click="loadData" style="margin-top: 10px; padding: 8px 16px; background: #667eea; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                <p id="error-message"></p>
+                <button onclick="loadData()" style="margin-top: 10px; padding: 8px 16px; background: #667eea; color: white; border: none; border-radius: 4px; cursor: pointer;">
                     重新載入
                 </button>
             </div>
             
-            <div v-else class="item-table">
+            <div id="content" class="item-table" style="display: none;">
                 <div class="search-section">
                     <div class="search-group">
                         <label for="search">搜尋：</label>
                         <input 
                             id="search"
-                            v-model="searchQuery" 
                             placeholder="搜尋物品名稱、職業、掉落魔物..."
                             class="search-input"
                         />
@@ -300,17 +299,14 @@
                     
                     <div class="filter-group">
                         <label for="series-filter">武器系列：</label>
-                        <select id="series-filter" v-model="selectedSeries" class="series-filter">
+                        <select id="series-filter" class="series-filter">
                             <option value="">所有系列</option>
-                            <option v-for="series in uniqueSeries" :key="series" :value="series">
-                                {{ series }}
-                            </option>
                         </select>
                     </div>
                     
                     <div class="filter-group">
                         <label for="level-filter">等級限制：</label>
-                        <select id="level-filter" v-model="selectedLevel" class="level-filter">
+                        <select id="level-filter" class="level-filter">
                             <option value="">所有等級</option>
                             <option value="1">1級</option>
                             <option value="2">2級</option>
@@ -333,79 +329,51 @@
                     <table class="items-table">
                         <thead>
                             <tr>
-                                <th @click="sortBy('名稱')" class="sortable">
+                                <th onclick="sortBy('名稱')" class="sortable">
                                     物品名稱
-                                    <span v-if="sortKey === '名稱'" class="sort-icon">
-                                        {{ sortOrder === 'asc' ? '↑' : '↓' }}
-                                    </span>
+                                    <span id="sort-名稱" class="sort-icon">↑</span>
                                 </th>
-                                <th @click="sortBy('職業限制')" class="sortable">
+                                <th onclick="sortBy('職業限制')" class="sortable">
                                     職業限制
-                                    <span v-if="sortKey === '職業限制'" class="sort-icon">
-                                        {{ sortOrder === 'asc' ? '↑' : '↓' }}
-                                    </span>
+                                    <span id="sort-職業限制" class="sort-icon" style="display: none;"></span>
                                 </th>
-                                <th @click="sortBy('等級限制')" class="sortable">
+                                <th onclick="sortBy('等級限制')" class="sortable">
                                     等級限制
-                                    <span v-if="sortKey === '等級限制'" class="sort-icon">
-                                        {{ sortOrder === 'asc' ? '↑' : '↓' }}
-                                    </span>
+                                    <span id="sort-等級限制" class="sort-icon" style="display: none;"></span>
                                 </th>
-                                <th @click="sortBy('武器等級')" class="sortable">
+                                <th onclick="sortBy('武器等級')" class="sortable">
                                     武器等級
-                                    <span v-if="sortKey === '武器等級'" class="sort-icon">
-                                        {{ sortOrder === 'asc' ? '↑' : '↓' }}
-                                    </span>
+                                    <span id="sort-武器等級" class="sort-icon" style="display: none;"></span>
                                 </th>
-                                <th @click="sortBy('系列')" class="sortable">
+                                <th onclick="sortBy('系列')" class="sortable">
                                     系列
-                                    <span v-if="sortKey === '系列'" class="sort-icon">
-                                        {{ sortOrder === 'asc' ? '↑' : '↓' }}
-                                    </span>
+                                    <span id="sort-系列" class="sort-icon" style="display: none;"></span>
                                 </th>
-                                <th @click="sortBy('掉落魔物')" class="sortable">
+                                <th onclick="sortBy('掉落魔物')" class="sortable">
                                     掉落魔物
-                                    <span v-if="sortKey === '掉落魔物'" class="sort-icon">
-                                        {{ sortOrder === 'asc' ? '↑' : '↓' }}
-                                    </span>
+                                    <span id="sort-掉落魔物" class="sort-icon" style="display: none;"></span>
                                 </th>
                             </tr>
                         </thead>
-                        <tbody>
-                            <tr v-for="item in paginatedItems" :key="item.名稱" class="item-row">
-                                <td class="item-name">{{ item.名稱 }}</td>
-                                <td class="job-restriction">{{ item.職業限制 }}</td>
-                                <td class="level-restriction">{{ item.等級限制 }}</td>
-                                <td class="weapon-level">{{ item.武器等級 }}</td>
-                                <td class="series">{{ item.系列 }}</td>
-                                <td class="monster">{{ item.掉落魔物 }}</td>
-                            </tr>
+                        <tbody id="table-body">
                         </tbody>
                     </table>
                 </div>
                 
                 <div class="pagination">
-                    <button 
-                        @click="prevPage" 
-                        :disabled="currentPage === 1"
-                        class="page-btn"
-                    >
+                    <button id="prev-btn" class="page-btn">
                         上一頁
                     </button>
-                    <span class="page-info">
-                        第 {{ currentPage }} 頁，共 {{ totalPages }} 頁
+                    <span id="page-info" class="page-info">
+                        第 1 頁，共 1 頁
                     </span>
-                    <button 
-                        @click="nextPage" 
-                        :disabled="currentPage === totalPages"
-                        class="page-btn"
-                    >
+                    <button id="next-btn" class="page-btn">
                         下一頁
                     </button>
                 </div>
                 
-                <div class="stats">
-                    顯示 {{ filteredItems.length }} / {{ items.length }} 個物品
+                <div id="stats" class="stats">
+                    顯示 0 / 0 個物品
                 </div>
             </div>
         </main>
@@ -416,121 +384,239 @@
     </div>
 
     <script>
-        const { createApp } = Vue
+        // 全域變數
+        let allItems = [];
+        let filteredItems = [];
+        let currentPage = 1;
+        let itemsPerPage = 20;
+        let sortKey = '名稱';
+        let sortOrder = 'asc';
 
-        createApp({
-            data() {
-                return {
-                    items: [],
-                    loading: true,
-                    error: null,
-                    searchQuery: '',
-                    selectedSeries: '',
-                    selectedLevel: '',
-                    sortKey: '名稱',
-                    sortOrder: 'asc',
-                    currentPage: 1,
-                    itemsPerPage: 20
+        // 載入資料
+        async function loadData() {
+            showLoading();
+            
+            try {
+                const response = await fetch('./src/data/items.json');
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
                 }
-            },
-            computed: {
-                uniqueSeries() {
-                    return [...new Set(this.items.map(item => item.系列))].sort()
-                },
-                filteredItems() {
-                    return this.items.filter(item => {
-                        const matchesSearch = !this.searchQuery || 
-                            item.名稱.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
-                            item.職業限制.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
-                            item.掉落魔物.toLowerCase().includes(this.searchQuery.toLowerCase())
-                        
-                        const matchesSeries = !this.selectedSeries || item.系列 === this.selectedSeries
-                        const matchesLevel = !this.selectedLevel || item.等級限制 === this.selectedLevel
-                        
-                        return matchesSearch && matchesSeries && matchesLevel
-                    })
-                },
-                sortedItems() {
-                    return [...this.filteredItems].sort((a, b) => {
-                        let aVal = a[this.sortKey]
-                        let bVal = b[this.sortKey]
-                        
-                        // 處理等級限制的排序
-                        if (this.sortKey === '等級限制') {
-                            if (aVal === '無') aVal = 0
-                            if (bVal === '無') bVal = 0
-                            aVal = parseInt(aVal) || 0
-                            bVal = parseInt(bVal) || 0
-                        }
-                        
-                        if (this.sortOrder === 'asc') {
-                            return aVal > bVal ? 1 : -1
-                        } else {
-                            return aVal < bVal ? 1 : -1
-                        }
-                    })
-                },
-                totalPages() {
-                    return Math.ceil(this.sortedItems.length / this.itemsPerPage)
-                },
-                paginatedItems() {
-                    const start = (this.currentPage - 1) * this.itemsPerPage
-                    const end = start + this.itemsPerPage
-                    return this.sortedItems.slice(start, end)
-                }
-            },
-            watch: {
-                searchQuery() {
-                    this.currentPage = 1
-                },
-                selectedSeries() {
-                    this.currentPage = 1
-                },
-                selectedLevel() {
-                    this.currentPage = 1
-                }
-            },
-            methods: {
-                async loadData() {
-                    this.loading = true
-                    this.error = null
-                    
-                    try {
-                        const response = await fetch('./src/data/items.json')
-                        if (!response.ok) {
-                            throw new Error(`HTTP error! status: ${response.status}`)
-                        }
-                        this.items = await response.json()
-                    } catch (err) {
-                        this.error = `載入資料失敗: ${err.message}`
-                        console.error('載入資料失敗:', err)
-                    } finally {
-                        this.loading = false
-                    }
-                },
-                sortBy(key) {
-                    if (this.sortKey === key) {
-                        this.sortOrder = this.sortOrder === 'asc' ? 'desc' : 'asc'
-                    } else {
-                        this.sortKey = key
-                        this.sortOrder = 'asc'
-                    }
-                },
-                prevPage() {
-                    if (this.currentPage > 1) {
-                        this.currentPage--
-                    }
-                },
-                nextPage() {
-                    if (this.currentPage < this.totalPages) {
-                        this.currentPage++
-                    }
-                }
-            },
-            mounted() {
-                this.loadData()
+                allItems = await response.json();
+                
+                // 初始化
+                populateSeriesFilter();
+                filterAndRender();
+                showContent();
+                
+            } catch (err) {
+                showError(`載入資料失敗: ${err.message}`);
+                console.error('載入資料失敗:', err);
             }
-        }).mount('#app')
+        }
+
+        // 顯示載入中
+        function showLoading() {
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('error').style.display = 'none';
+            document.getElementById('content').style.display = 'none';
+        }
+
+        // 顯示錯誤
+        function showError(message) {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('error').style.display = 'block';
+            document.getElementById('content').style.display = 'none';
+            document.getElementById('error-message').textContent = message;
+        }
+
+        // 顯示內容
+        function showContent() {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('error').style.display = 'none';
+            document.getElementById('content').style.display = 'block';
+        }
+
+        // 填充系列篩選器
+        function populateSeriesFilter() {
+            const series = [...new Set(allItems.map(item => item.系列))].sort();
+            const select = document.getElementById('series-filter');
+            
+            // 清空現有選項（保留"所有系列"）
+            select.innerHTML = '<option value="">所有系列</option>';
+            
+            // 加入系列選項
+            series.forEach(s => {
+                const option = document.createElement('option');
+                option.value = s;
+                option.textContent = s;
+                select.appendChild(option);
+            });
+        }
+
+        // 篩選和渲染
+        function filterAndRender() {
+            const searchQuery = document.getElementById('search').value.toLowerCase();
+            const selectedSeries = document.getElementById('series-filter').value;
+            const selectedLevel = document.getElementById('level-filter').value;
+
+            // 篩選
+            filteredItems = allItems.filter(item => {
+                const matchesSearch = !searchQuery || 
+                    item.名稱.toLowerCase().includes(searchQuery) ||
+                    item.職業限制.toLowerCase().includes(searchQuery) ||
+                    item.掉落魔物.toLowerCase().includes(searchQuery);
+                
+                const matchesSeries = !selectedSeries || item.系列 === selectedSeries;
+                const matchesLevel = !selectedLevel || item.等級限制 === selectedLevel;
+                
+                return matchesSearch && matchesSeries && matchesLevel;
+            });
+
+            // 排序
+            sortItems();
+            
+            // 重置分頁
+            currentPage = 1;
+            
+            // 渲染
+            renderTable();
+            updatePagination();
+            updateStats();
+        }
+
+        // 排序
+        function sortItems() {
+            filteredItems.sort((a, b) => {
+                let aVal = a[sortKey];
+                let bVal = b[sortKey];
+                
+                // 處理等級限制的排序
+                if (sortKey === '等級限制') {
+                    if (aVal === '無') aVal = 0;
+                    if (bVal === '無') bVal = 0;
+                    aVal = parseInt(aVal) || 0;
+                    bVal = parseInt(bVal) || 0;
+                }
+                
+                if (sortOrder === 'asc') {
+                    return aVal > bVal ? 1 : -1;
+                } else {
+                    return aVal < bVal ? 1 : -1;
+                }
+            });
+        }
+
+        // 排序功能
+        function sortBy(key) {
+            if (sortKey === key) {
+                sortOrder = sortOrder === 'asc' ? 'desc' : 'asc';
+            } else {
+                sortKey = key;
+                sortOrder = 'asc';
+            }
+            
+            // 更新排序圖示
+            updateSortIcons();
+            
+            // 重新排序和渲染
+            sortItems();
+            renderTable();
+        }
+
+        // 更新排序圖示
+        function updateSortIcons() {
+            const keys = ['名稱', '職業限制', '等級限制', '武器等級', '系列', '掉落魔物'];
+            
+            keys.forEach(key => {
+                const icon = document.getElementById(`sort-${key}`);
+                if (key === sortKey) {
+                    icon.style.display = 'inline';
+                    icon.textContent = sortOrder === 'asc' ? '↑' : '↓';
+                } else {
+                    icon.style.display = 'none';
+                }
+            });
+        }
+
+        // 渲染表格
+        function renderTable() {
+            const tbody = document.getElementById('table-body');
+            const start = (currentPage - 1) * itemsPerPage;
+            const end = start + itemsPerPage;
+            const pageItems = filteredItems.slice(start, end);
+            
+            tbody.innerHTML = '';
+            
+            pageItems.forEach(item => {
+                const row = document.createElement('tr');
+                row.className = 'item-row';
+                
+                row.innerHTML = `
+                    <td class="item-name">${item.名稱}</td>
+                    <td class="job-restriction">${item.職業限制}</td>
+                    <td class="level-restriction">${item.等級限制}</td>
+                    <td class="weapon-level">${item.武器等級}</td>
+                    <td class="series">${item.系列}</td>
+                    <td class="monster">${item.掉落魔物}</td>
+                `;
+                
+                tbody.appendChild(row);
+            });
+        }
+
+        // 更新分頁
+        function updatePagination() {
+            const totalPages = Math.ceil(filteredItems.length / itemsPerPage);
+            const prevBtn = document.getElementById('prev-btn');
+            const nextBtn = document.getElementById('next-btn');
+            const pageInfo = document.getElementById('page-info');
+            
+            prevBtn.disabled = currentPage === 1;
+            nextBtn.disabled = currentPage === totalPages;
+            pageInfo.textContent = `第 ${currentPage} 頁，共 ${totalPages} 頁`;
+        }
+
+        // 更新統計
+        function updateStats() {
+            const stats = document.getElementById('stats');
+            stats.textContent = `顯示 ${filteredItems.length} / ${allItems.length} 個物品`;
+        }
+
+        // 上一頁
+        function prevPage() {
+            if (currentPage > 1) {
+                currentPage--;
+                renderTable();
+                updatePagination();
+            }
+        }
+
+        // 下一頁
+        function nextPage() {
+            const totalPages = Math.ceil(filteredItems.length / itemsPerPage);
+            if (currentPage < totalPages) {
+                currentPage++;
+                renderTable();
+                updatePagination();
+            }
+        }
+
+        // 事件監聽器
+        document.addEventListener('DOMContentLoaded', function() {
+            // 載入資料
+            loadData();
+            
+            // 搜尋事件
+            document.getElementById('search').addEventListener('input', filterAndRender);
+            
+            // 篩選事件
+            document.getElementById('series-filter').addEventListener('change', filterAndRender);
+            document.getElementById('level-filter').addEventListener('change', filterAndRender);
+            
+            // 分頁事件
+            document.getElementById('prev-btn').addEventListener('click', prevPage);
+            document.getElementById('next-btn').addEventListener('click', nextPage);
+        });
     </script>
   </body>
 </html> 
