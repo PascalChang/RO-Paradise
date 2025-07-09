@@ -152,6 +152,35 @@
             border-color: #4facfe;
         }
 
+        .mode-tabs {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        .mode-tab {
+            padding: 10px 20px;
+            border: 2px solid #e9ecef;
+            background: white;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .mode-tab:hover {
+            border-color: #4facfe;
+            color: #4facfe;
+        }
+
+        .mode-tab.active {
+            background: #4facfe;
+            color: white;
+            border-color: #4facfe;
+        }
+
         .stats {
             display: flex;
             gap: 20px;
@@ -287,6 +316,11 @@
         .category-shield { background: #ff9ff3; color: white; }
         .category-accessory { background: #54a0ff; color: white; }
 
+        .category-mvp { background: #e74c3c; color: white; }
+        .category-boss { background: #f39c12; color: white; }
+        .category-normal { background: #27ae60; color: white; }
+        .category-other { background: #95a5a6; color: white; }
+
         .footer {
             background: #2c3e50;
             color: white;
@@ -366,9 +400,9 @@
     <div class="container">
         <div class="header">
             <h1>🏰 RO 掉落物品查詢</h1>
-            <p>快速搜尋仙境傳說裝備掉落資訊</p>
+            <p>快速搜尋仙境傳說裝備掉落資訊與怪物資料</p>
             <div class="data-source">
-                <p>📊 資料來源：<a href="https://docs.google.com/spreadsheets/d/1W8vbAFTSxkcCTrkHTSxJcyw92hJLgeTSZImWncjcaps/edit" target="_blank" rel="noopener">Google 試算表 - 掉落物品簡易整理表</a></p>
+                <p>📊 資料來源：<a href="https://docs.google.com/spreadsheets/d/1W8vbAFTSxkcCTrkHTSxJcyw92hJLgeTSZImWncjcaps/edit" target="_blank" rel="noopener">Google 試算表 - 掉落物品簡易整理表</a> | <a href="https://rd.fharr.com/db/monsterlist?t=5" target="_blank" rel="noopener">幻想廳 RO 資料庫</a></p>
             </div>
         </div>
 
@@ -381,7 +415,7 @@
                     <label>排序:</label>
                     <select id="sortSelect">
                         <option value="name">按名稱</option>
-                        <option value="level">按等級限制</option>
+                        <option value="level">按等級</option>
                         <option value="category">按類別</option>
                     </select>
                 </div>
@@ -407,7 +441,12 @@
                 <div class="category-tab" data-category="飾品">飾品</div>
             </div>
 
-            <div class="filter-row">
+            <div class="mode-tabs" id="modeTabs">
+                <div class="mode-tab active" data-mode="items">物品查詢</div>
+                <div class="mode-tab" data-mode="monsters">怪物查詢</div>
+            </div>
+
+            <div class="filter-row" id="itemFilters">
                 <div class="filter-group">
                     <label>職業限制:</label>
                     <select id="jobFilter">
@@ -445,6 +484,45 @@
                 </div>
             </div>
 
+            <div class="filter-row" id="monsterFilters" style="display: none;">
+                <div class="filter-group">
+                    <label>種族:</label>
+                    <select id="raceFilter">
+                        <option value="">全部種族</option>
+                        <option value="動物">動物</option>
+                        <option value="植物">植物</option>
+                        <option value="昆蟲">昆蟲</option>
+                        <option value="不死">不死</option>
+                        <option value="人形">人形</option>
+                        <option value="惡魔">惡魔</option>
+                        <option value="天使">天使</option>
+                        <option value="龍族">龍族</option>
+                        <option value="魚貝">魚貝</option>
+                        <option value="無形">無形</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label>體型:</label>
+                    <select id="sizeFilter">
+                        <option value="">全部體型</option>
+                        <option value="小">小</option>
+                        <option value="中">中</option>
+                        <option value="大">大</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label>等級範圍:</label>
+                    <select id="monsterLevelFilter">
+                        <option value="">全部等級</option>
+                        <option value="1-10">1-10級</option>
+                        <option value="11-30">11-30級</option>
+                        <option value="31-60">31-60級</option>
+                        <option value="61-90">61-90級</option>
+                        <option value="91+">91級以上</option>
+                    </select>
+                </div>
+            </div>
+
             <div class="stats" id="stats">
                 <div class="stat-item">
                     <div class="stat-number" id="totalItems">0</div>
@@ -463,7 +541,9 @@
 
         <div class="table-container">
             <div id="loading" class="loading">載入中...</div>
-            <div id="noResults" class="no-results" style="display: none;">沒有找到符合條件的物品</div>
+            <div id="noResults" class="no-results" style="display: none;">沒有找到符合條件的資料</div>
+            
+            <!-- 物品表格 -->
             <table id="itemsTable" style="display: none;">
                 <thead>
                     <tr>
@@ -481,6 +561,28 @@
                 </tbody>
             </table>
 
+            <!-- 怪物表格 -->
+            <table id="monstersTable" style="display: none;">
+                <thead>
+                    <tr>
+                        <th onclick="sortTable('ID')">ID ↕</th>
+                        <th onclick="sortTable('名稱')">怪物名稱 ↕</th>
+                        <th onclick="sortTable('等級')">等級 ↕</th>
+                        <th onclick="sortTable('種族')">種族 ↕</th>
+                        <th onclick="sortTable('屬性')">屬性 ↕</th>
+                        <th onclick="sortTable('體型')">體型 ↕</th>
+                        <th onclick="sortTable('HP')">HP ↕</th>
+                        <th onclick="sortTable('基礎經驗')">基礎經驗 ↕</th>
+                        <th onclick="sortTable('最小攻擊')">最小攻擊 ↕</th>
+                        <th onclick="sortTable('最大攻擊')">最大攻擊 ↕</th>
+                        <th onclick="sortTable('防禦')">防禦 ↕</th>
+                        <th onclick="sortTable('魔防')">魔防 ↕</th>
+                    </tr>
+                </thead>
+                <tbody id="monstersTableBody">
+                </tbody>
+            </table>
+
             <div class="pagination" id="pagination" style="display: none;">
                 <button onclick="changePage(-1)" id="prevBtn">上一頁</button>
                 <span id="pageInfo">第 1 頁，共 1 頁</span>
@@ -492,7 +594,8 @@
             <div class="footer-content">
                 <div class="footer-section">
                     <h4>📚 資料來源</h4>
-                    <p>本網站所有裝備資料均來自以下 Google 試算表：</p>
+                    <p>本網站資料均來自以下來源：</p>
+                    <p><strong>裝備資料：</strong></p>
                     <ul>
                         <li><a href="https://docs.google.com/spreadsheets/d/1W8vbAFTSxkcCTrkHTSxJcyw92hJLgeTSZImWncjcaps/edit?gid=0" target="_blank" rel="noopener">武器頁籤</a></li>
                         <li><a href="https://docs.google.com/spreadsheets/d/1W8vbAFTSxkcCTrkHTSxJcyw92hJLgeTSZImWncjcaps/edit?gid=425293828" target="_blank" rel="noopener">頭具頁籤</a></li>
@@ -502,10 +605,15 @@
                         <li><a href="https://docs.google.com/spreadsheets/d/1W8vbAFTSxkcCTrkHTSxJcyw92hJLgeTSZImWncjcaps/edit?gid=787216853" target="_blank" rel="noopener">盾頁籤</a></li>
                         <li><a href="https://docs.google.com/spreadsheets/d/1W8vbAFTSxkcCTrkHTSxJcyw92hJLgeTSZImWncjcaps/edit?gid=515713282" target="_blank" rel="noopener">飾品頁籤</a></li>
                     </ul>
+                    <p><strong>怪物資料：</strong></p>
+                    <ul>
+                        <li><a href="https://rd.fharr.com/db/monsterlist?t=5" target="_blank" rel="noopener">幻想廳 RO 資料庫 - 魔物表</a></li>
+                    </ul>
                 </div>
                 <div class="footer-section">
                     <h4>📊 資料統計</h4>
                     <p>目前收錄裝備總數：<strong id="footerTotalItems">0</strong> 個</p>
+                    <p>目前收錄怪物總數：<strong id="footerTotalMonsters">0</strong> 個</p>
                     <p>包含類別：武器、頭具、衣服、披肩、鞋子、盾、飾品</p>
                 </div>
                 <div class="footer-section">
@@ -519,17 +627,25 @@
 
     <script>
         let allItems = [];
+        let allMonsters = [];
         let filteredItems = [];
+        let filteredMonsters = [];
         let currentPage = 1;
         let itemsPerPage = 20;
         let currentSort = { field: '名稱', direction: 'asc' };
         let currentCategory = 'all';
+        let currentMode = 'items';
 
         // 載入資料
-        async function loadItems() {
+        async function loadData() {
             try {
-                const response = await fetch('src/data/items.json');
-                allItems = await response.json();
+                const [itemsResponse, monstersResponse] = await Promise.all([
+                    fetch('src/data/items.json'),
+                    fetch('src/data/monsters.json')
+                ]);
+                
+                allItems = await itemsResponse.json();
+                allMonsters = await monstersResponse.json();
                 initializeApp();
             } catch (error) {
                 console.error('載入資料失敗:', error);
@@ -548,20 +664,28 @@
             document.getElementById('lastUpdateTime').textContent = now.toLocaleString('zh-TW');
             
             setupEventListeners();
-            filterAndDisplayItems();
+            updateSortOptions();
+            filterAndDisplayData();
         }
 
         // 設定事件監聽器
         function setupEventListeners() {
-            document.getElementById('searchInput').addEventListener('input', filterAndDisplayItems);
-            document.getElementById('sortSelect').addEventListener('change', filterAndDisplayItems);
+            document.getElementById('searchInput').addEventListener('input', filterAndDisplayData);
+            document.getElementById('sortSelect').addEventListener('change', filterAndDisplayData);
             document.getElementById('pageSizeSelect').addEventListener('change', function() {
                 itemsPerPage = parseInt(this.value);
                 currentPage = 1;
-                filterAndDisplayItems();
+                filterAndDisplayData();
             });
-            document.getElementById('jobFilter').addEventListener('change', filterAndDisplayItems);
-            document.getElementById('levelFilter').addEventListener('change', filterAndDisplayItems);
+
+            // 物品篩選器
+            document.getElementById('jobFilter').addEventListener('change', filterAndDisplayData);
+            document.getElementById('levelFilter').addEventListener('change', filterAndDisplayData);
+
+            // 怪物篩選器
+            document.getElementById('raceFilter').addEventListener('change', filterAndDisplayData);
+            document.getElementById('sizeFilter').addEventListener('change', filterAndDisplayData);
+            document.getElementById('monsterLevelFilter').addEventListener('change', filterAndDisplayData);
 
             // 類別標籤事件
             document.querySelectorAll('.category-tab').forEach(tab => {
@@ -570,9 +694,67 @@
                     this.classList.add('active');
                     currentCategory = this.dataset.category;
                     currentPage = 1;
-                    filterAndDisplayItems();
+                    filterAndDisplayData();
                 });
             });
+
+            // 模式標籤事件
+            document.querySelectorAll('.mode-tab').forEach(tab => {
+                tab.addEventListener('click', function() {
+                    document.querySelectorAll('.mode-tab').forEach(t => t.classList.remove('active'));
+                    this.classList.add('active');
+                    currentMode = this.dataset.mode;
+                    currentPage = 1;
+                    currentCategory = 'all';
+                    
+                    // 重置類別標籤
+                    document.querySelectorAll('.category-tab').forEach(t => t.classList.remove('active'));
+                    document.querySelector('.category-tab[data-category="all"]').classList.add('active');
+                    
+                    // 切換篩選器顯示
+                    toggleFilters();
+                    
+                    // 更新排序選項
+                    updateSortOptions();
+                    
+                    filterAndDisplayData();
+                });
+            });
+        }
+
+        // 切換篩選器顯示
+        function toggleFilters() {
+            const itemFilters = document.getElementById('itemFilters');
+            const monsterFilters = document.getElementById('monsterFilters');
+            
+            if (currentMode === 'items') {
+                itemFilters.style.display = 'flex';
+                monsterFilters.style.display = 'none';
+            } else {
+                itemFilters.style.display = 'none';
+                monsterFilters.style.display = 'flex';
+            }
+        }
+
+        // 更新排序選項
+        function updateSortOptions() {
+            const sortSelect = document.getElementById('sortSelect');
+            const categoryOption = sortSelect.querySelector('option[value="category"]');
+            
+            if (currentMode === 'items') {
+                categoryOption.textContent = '按類別';
+            } else {
+                categoryOption.textContent = '按種族';
+            }
+        }
+
+        // 篩選和顯示資料
+        function filterAndDisplayData() {
+            if (currentMode === 'items') {
+                filterAndDisplayItems();
+            } else {
+                filterAndDisplayMonsters();
+            }
         }
 
         // 篩選和顯示物品
@@ -615,6 +797,55 @@
             displayCurrentPage();
         }
 
+        // 篩選和顯示怪物
+        function filterAndDisplayMonsters() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const raceFilter = document.getElementById('raceFilter').value;
+            const sizeFilter = document.getElementById('sizeFilter').value;
+            const levelFilter = document.getElementById('monsterLevelFilter').value;
+
+            filteredMonsters = allMonsters.filter(monster => {
+                // 搜尋篩選
+                const matchesSearch = !searchTerm || 
+                    monster.名稱.toLowerCase().includes(searchTerm) ||
+                    monster.種族.toLowerCase().includes(searchTerm) ||
+                    monster.屬性.toLowerCase().includes(searchTerm);
+
+                // 種族篩選
+                const matchesRace = !raceFilter || monster.種族 === raceFilter;
+
+                // 體型篩選
+                const matchesSize = !sizeFilter || monster.體型 === sizeFilter;
+
+                // 等級範圍篩選
+                const matchesLevel = !levelFilter || checkLevelRange(monster.等級, levelFilter);
+
+                return matchesSearch && matchesRace && matchesSize && matchesLevel;
+            });
+
+            // 排序
+            sortMonsters();
+
+            // 更新統計
+            updateStats();
+
+            // 顯示當前頁面
+            displayCurrentPage();
+        }
+
+        // 檢查等級範圍
+        function checkLevelRange(monsterLevel, range) {
+            const level = parseInt(monsterLevel);
+            switch (range) {
+                case '1-10': return level >= 1 && level <= 10;
+                case '11-30': return level >= 11 && level <= 30;
+                case '31-60': return level >= 31 && level <= 60;
+                case '61-90': return level >= 61 && level <= 90;
+                case '91+': return level >= 91;
+                default: return true;
+            }
+        }
+
         // 排序物品
         function sortItems() {
             const sortField = document.getElementById('sortSelect').value;
@@ -642,18 +873,58 @@
             });
         }
 
+        // 排序怪物
+        function sortMonsters() {
+            const sortField = document.getElementById('sortSelect').value;
+            const sortMap = {
+                'name': '名稱',
+                'level': '等級',
+                'category': '種族'
+            };
+
+            const field = sortMap[sortField] || '名稱';
+            
+            filteredMonsters.sort((a, b) => {
+                let aVal = a[field] || '';
+                let bVal = b[field] || '';
+
+                // 數字排序
+                if (field === '等級' || field === 'HP' || field === '基礎經驗' || field === '職業經驗' || field === '最小攻擊' || field === '最大攻擊') {
+                    aVal = parseInt(aVal) || 0;
+                    bVal = parseInt(bVal) || 0;
+                    return aVal - bVal;
+                }
+
+                // 字串排序
+                return aVal.localeCompare(bVal, 'zh-TW');
+            });
+        }
+
         // 更新統計資訊
         function updateStats() {
-            document.getElementById('totalItems').textContent = allItems.length;
-            document.getElementById('filteredItems').textContent = filteredItems.length;
+            const totalData = currentMode === 'items' ? allItems.length : allMonsters.length;
+            const filteredData = currentMode === 'items' ? filteredItems.length : filteredMonsters.length;
+            
+            document.getElementById('totalItems').textContent = totalData;
+            document.getElementById('filteredItems').textContent = filteredData;
             document.getElementById('currentPage').textContent = currentPage;
             
             // 更新頁腳統計
             document.getElementById('footerTotalItems').textContent = allItems.length;
+            document.getElementById('footerTotalMonsters').textContent = allMonsters.length;
         }
 
         // 顯示當前頁面
         function displayCurrentPage() {
+            if (currentMode === 'items') {
+                displayItemsPage();
+            } else {
+                displayMonstersPage();
+            }
+        }
+
+        // 顯示物品頁面
+        function displayItemsPage() {
             const startIndex = (currentPage - 1) * itemsPerPage;
             const endIndex = startIndex + itemsPerPage;
             const pageItems = filteredItems.slice(startIndex, endIndex);
@@ -664,12 +935,14 @@
             if (pageItems.length === 0) {
                 document.getElementById('noResults').style.display = 'block';
                 document.getElementById('itemsTable').style.display = 'none';
+                document.getElementById('monstersTable').style.display = 'none';
                 document.getElementById('pagination').style.display = 'none';
                 return;
             }
 
             document.getElementById('noResults').style.display = 'none';
             document.getElementById('itemsTable').style.display = 'table';
+            document.getElementById('monstersTable').style.display = 'none';
             document.getElementById('pagination').style.display = 'flex';
 
             pageItems.forEach(item => {
@@ -693,6 +966,74 @@
             updatePagination();
         }
 
+        // 顯示怪物頁面
+        function displayMonstersPage() {
+            const startIndex = (currentPage - 1) * itemsPerPage;
+            const endIndex = startIndex + itemsPerPage;
+            const pageMonsters = filteredMonsters.slice(startIndex, endIndex);
+
+            const tbody = document.getElementById('monstersTableBody');
+            tbody.innerHTML = '';
+
+            if (pageMonsters.length === 0) {
+                document.getElementById('noResults').style.display = 'block';
+                document.getElementById('itemsTable').style.display = 'none';
+                document.getElementById('monstersTable').style.display = 'none';
+                document.getElementById('pagination').style.display = 'none';
+                return;
+            }
+
+            document.getElementById('noResults').style.display = 'none';
+            document.getElementById('itemsTable').style.display = 'none';
+            document.getElementById('monstersTable').style.display = 'table';
+            document.getElementById('pagination').style.display = 'flex';
+
+            pageMonsters.forEach(monster => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${monster.ID}</td>
+                    <td>
+                        <span class="item-name">${monster.名稱}</span>
+                        <span class="category-badge category-${getMonsterTypeClass(monster.名稱)}">${getMonsterType(monster.名稱)}</span>
+                    </td>
+                    <td>${monster.等級}</td>
+                    <td>${monster.種族}</td>
+                    <td>${monster.屬性}</td>
+                    <td>${monster.體型}</td>
+                    <td>${formatNumber(monster.HP)}</td>
+                    <td>${formatNumber(monster.基礎經驗)}</td>
+                    <td>${monster.最小攻擊}</td>
+                    <td>${monster.最大攻擊}</td>
+                    <td>${monster.防禦}</td>
+                    <td>${monster.魔防}</td>
+                `;
+                tbody.appendChild(row);
+            });
+
+            updatePagination();
+        }
+
+        // 格式化數字
+        function formatNumber(num) {
+            return parseInt(num).toLocaleString('zh-TW');
+        }
+
+        // 取得怪物類型
+        function getMonsterType(name) {
+            if (name.includes('[M]')) return 'MVP';
+            if (name.includes('[B]')) return 'BOSS';
+            if (name.includes('[一般]')) return '一般';
+            return '其他';
+        }
+
+        // 取得怪物類型 CSS 類別
+        function getMonsterTypeClass(name) {
+            if (name.includes('[M]')) return 'mvp';
+            if (name.includes('[B]')) return 'boss';
+            if (name.includes('[一般]')) return 'normal';
+            return 'other';
+        }
+
         // 取得類別 CSS 類別
         function getCategoryClass(category) {
             const classMap = {
@@ -709,7 +1050,8 @@
 
         // 更新分頁
         function updatePagination() {
-            const totalPages = Math.ceil(filteredItems.length / itemsPerPage);
+            const totalData = currentMode === 'items' ? filteredItems.length : filteredMonsters.length;
+            const totalPages = Math.ceil(totalData / itemsPerPage);
             const pageInfo = document.getElementById('pageInfo');
             const prevBtn = document.getElementById('prevBtn');
             const nextBtn = document.getElementById('nextBtn');
@@ -721,7 +1063,8 @@
 
         // 切換頁面
         function changePage(delta) {
-            const totalPages = Math.ceil(filteredItems.length / itemsPerPage);
+            const totalData = currentMode === 'items' ? filteredItems.length : filteredMonsters.length;
+            const totalPages = Math.ceil(totalData / itemsPerPage);
             const newPage = currentPage + delta;
             
             if (newPage >= 1 && newPage <= totalPages) {
@@ -740,28 +1083,46 @@
                 currentSort.direction = 'asc';
             }
 
-            filteredItems.sort((a, b) => {
-                let aVal = a[field] || '';
-                let bVal = b[field] || '';
+            if (currentMode === 'items') {
+                filteredItems.sort((a, b) => {
+                    let aVal = a[field] || '';
+                    let bVal = b[field] || '';
 
-                // 數字排序
-                if (field === '等級限制' || field === '武器等級') {
-                    aVal = aVal === '無' ? 0 : parseInt(aVal) || 0;
-                    bVal = bVal === '無' ? 0 : parseInt(bVal) || 0;
-                    return currentSort.direction === 'asc' ? aVal - bVal : bVal - aVal;
-                }
+                    // 數字排序
+                    if (field === '等級限制' || field === '武器等級') {
+                        aVal = aVal === '無' ? 0 : parseInt(aVal) || 0;
+                        bVal = bVal === '無' ? 0 : parseInt(bVal) || 0;
+                        return currentSort.direction === 'asc' ? aVal - bVal : bVal - aVal;
+                    }
 
-                // 字串排序
-                const result = aVal.localeCompare(bVal, 'zh-TW');
-                return currentSort.direction === 'asc' ? result : -result;
-            });
+                    // 字串排序
+                    const result = aVal.localeCompare(bVal, 'zh-TW');
+                    return currentSort.direction === 'asc' ? result : -result;
+                });
+            } else {
+                filteredMonsters.sort((a, b) => {
+                    let aVal = a[field] || '';
+                    let bVal = b[field] || '';
+
+                    // 數字排序
+                    if (field === '等級' || field === 'HP' || field === '基礎經驗' || field === '職業經驗' || field === '最小攻擊' || field === '最大攻擊') {
+                        aVal = parseInt(aVal) || 0;
+                        bVal = parseInt(bVal) || 0;
+                        return currentSort.direction === 'asc' ? aVal - bVal : bVal - aVal;
+                    }
+
+                    // 字串排序
+                    const result = aVal.localeCompare(bVal, 'zh-TW');
+                    return currentSort.direction === 'asc' ? result : -result;
+                });
+            }
 
             currentPage = 1;
             displayCurrentPage();
         }
 
         // 載入應用
-        loadItems();
+        loadData();
     </script>
   </body>
 </html> 
