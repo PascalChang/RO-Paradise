@@ -1,44 +1,34 @@
-# 爬蟲相關程式
-test.js
-fetch_monsters.js
-fetch_monsters_browser.js
-monster_fetch_simple.js
-
-# 完整資料檔案
-ro_monsters_full.json
-monsters_full.json
-
-# Node.js 相關
+# Node.js
 node_modules/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
+package-lock.json
 
-# 環境變數
-.env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
+# 爬蟲腳本和測試檔案
+fetch_items_node.js
+fetch_items_browser.js
+fetch_monsters.js
+test_fetch.js
+convert_items.js
+test.js
 
-# 日誌檔案
-*.log
+# 完整資料檔案（不推送到 git）
+src/data/items_updated.json
+src/data/monsters_updated.json
+ro_monsters_full.json
 
-# 暫存檔案
-*.tmp
-*.temp
+# 說明文件
+README_items_fetch.md
+README_monster_fetch.md
+
+# 測試檔案
+test_items.json
+items_updated.json
 
 # 系統檔案
 .DS_Store
 Thumbs.db
 
-# IDE 檔案
+# 編輯器檔案
 .vscode/
 .idea/
 *.swp
-*.swo
-*~
-
-# 備份檔案
-*.bak
-*.backup 
+*.swo 

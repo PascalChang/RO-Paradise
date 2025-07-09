@@ -414,6 +414,7 @@
                 <div class="filter-group">
                     <label>排序:</label>
                     <select id="sortSelect">
+                        <option value="id">按ID</option>
                         <option value="name">按名稱</option>
                         <option value="level">按等級</option>
                         <option value="category">按類別</option>
@@ -430,15 +431,20 @@
                 </div>
             </div>
 
-            <div class="category-tabs" id="categoryTabs">
-                <div class="category-tab active" data-category="all">全部</div>
-                <div class="category-tab" data-category="武器">武器</div>
-                <div class="category-tab" data-category="頭具">頭具</div>
-                <div class="category-tab" data-category="衣服">衣服</div>
-                <div class="category-tab" data-category="披肩">披肩</div>
-                <div class="category-tab" data-category="鞋子">鞋子</div>
-                <div class="category-tab" data-category="盾">盾</div>
-                <div class="category-tab" data-category="飾品">飾品</div>
+            <div class="filter-row" id="categoryFilter" style="display: none;">
+                <div class="filter-group">
+                    <label>物品類別:</label>
+                    <select id="categorySelect">
+                        <option value="all">全部類別</option>
+                        <option value="武器">武器</option>
+                        <option value="頭具">頭具</option>
+                        <option value="衣服">衣服</option>
+                        <option value="披肩">披肩</option>
+                        <option value="鞋子">鞋子</option>
+                        <option value="盾">盾</option>
+                        <option value="飾品">飾品</option>
+                    </select>
+                </div>
             </div>
 
             <div class="mode-tabs" id="modeTabs">
@@ -577,6 +583,8 @@
                         <th onclick="sortTable('最大攻擊')">最大攻擊 ↕</th>
                         <th onclick="sortTable('防禦')">防禦 ↕</th>
                         <th onclick="sortTable('魔防')">魔防 ↕</th>
+                        <th onclick="sortTable('100%命中')">100%命中 ↕</th>
+                        <th onclick="sortTable('95%迴避')">95%迴避 ↕</th>
                     </tr>
                 </thead>
                 <tbody id="monstersTableBody">
@@ -607,7 +615,8 @@
                     </ul>
                     <p><strong>怪物資料：</strong></p>
                     <ul>
-                        <li><a href="https://rd.fharr.com/db/monsterlist?t=5" target="_blank" rel="noopener">幻想廳 RO 資料庫 - 魔物表</a></li>
+                        <li><a href="https://rd.fharr.com/db/monsterlist" target="_blank" rel="noopener">幻想廳 RO 資料庫 - 魔物表</a></li>
+                        <li>包含怪物基本資訊、屬性、掉落物品等詳細資料</li>
                     </ul>
                 </div>
                 <div class="footer-section">
@@ -633,7 +642,7 @@
         let filteredMonsters = [];
         let currentPage = 1;
         let itemsPerPage = 20;
-        let currentSort = { field: '名稱', direction: 'asc' };
+        let currentSort = { field: 'ID', direction: 'asc' };
         let currentCategory = 'all';
         let currentMode = 'items';
 
@@ -667,6 +676,11 @@
             setupEventListeners();
             updateSortOptions();
             filterAndDisplayData();
+            
+            // 設定怪物預設按 ID 排序
+            if (currentMode === 'monsters') {
+                document.getElementById('sortSelect').value = 'id';
+            }
         }
 
         // 設定事件監聽器
@@ -682,22 +696,14 @@
             // 物品篩選器
             document.getElementById('jobFilter').addEventListener('change', filterAndDisplayData);
             document.getElementById('levelFilter').addEventListener('change', filterAndDisplayData);
+            document.getElementById('categorySelect').addEventListener('change', filterAndDisplayData);
 
             // 怪物篩選器
             document.getElementById('raceFilter').addEventListener('change', filterAndDisplayData);
             document.getElementById('sizeFilter').addEventListener('change', filterAndDisplayData);
             document.getElementById('monsterLevelFilter').addEventListener('change', filterAndDisplayData);
 
-            // 類別標籤事件
-            document.querySelectorAll('.category-tab').forEach(tab => {
-                tab.addEventListener('click', function() {
-                    document.querySelectorAll('.category-tab').forEach(t => t.classList.remove('active'));
-                    this.classList.add('active');
-                    currentCategory = this.dataset.category;
-                    currentPage = 1;
-                    filterAndDisplayData();
-                });
-            });
+
 
             // 模式標籤事件
             document.querySelectorAll('.mode-tab').forEach(tab => {
@@ -708,9 +714,8 @@
                     currentPage = 1;
                     currentCategory = 'all';
                     
-                    // 重置類別標籤
-                    document.querySelectorAll('.category-tab').forEach(t => t.classList.remove('active'));
-                    document.querySelector('.category-tab[data-category="all"]').classList.add('active');
+                    // 重置類別選單
+                    document.getElementById('categorySelect').value = 'all';
                     
                     // 切換篩選器顯示
                     toggleFilters();
@@ -727,12 +732,15 @@
         function toggleFilters() {
             const itemFilters = document.getElementById('itemFilters');
             const monsterFilters = document.getElementById('monsterFilters');
+            const categoryFilter = document.getElementById('categoryFilter');
             
             if (currentMode === 'items') {
                 itemFilters.style.display = 'flex';
+                categoryFilter.style.display = 'flex';
                 monsterFilters.style.display = 'none';
             } else {
                 itemFilters.style.display = 'none';
+                categoryFilter.style.display = 'none';
                 monsterFilters.style.display = 'flex';
             }
         }
@@ -744,8 +752,10 @@
             
             if (currentMode === 'items') {
                 categoryOption.textContent = '按類別';
+                sortSelect.value = 'name';
             } else {
                 categoryOption.textContent = '按種族';
+                sortSelect.value = 'id';
             }
         }
 
@@ -763,10 +773,11 @@
             const searchTerm = document.getElementById('searchInput').value.toLowerCase();
             const jobFilter = document.getElementById('jobFilter').value;
             const levelFilter = document.getElementById('levelFilter').value;
+            const categoryFilter = document.getElementById('categorySelect').value;
 
             filteredItems = allItems.filter(item => {
                 // 類別篩選
-                if (currentCategory !== 'all' && item.類別 !== currentCategory) {
+                if (categoryFilter !== 'all' && item.類別 !== categoryFilter) {
                     return false;
                 }
 
@@ -878,12 +889,13 @@
         function sortMonsters() {
             const sortField = document.getElementById('sortSelect').value;
             const sortMap = {
+                'id': 'ID',
                 'name': '名稱',
                 'level': '等級',
                 'category': '種族'
             };
 
-            const field = sortMap[sortField] || '名稱';
+            const field = sortMap[sortField] || 'ID';
             
             filteredMonsters.sort((a, b) => {
                 let aVal = a[field] || '';
@@ -1007,6 +1019,8 @@
                     <td>${monster.最大攻擊}</td>
                     <td>${monster.防禦}</td>
                     <td>${monster.魔防}</td>
+                    <td>${monster['100%命中']}</td>
+                    <td>${monster['95%迴避']}</td>
                 `;
                 tbody.appendChild(row);
             });
@@ -1106,7 +1120,7 @@
                     let bVal = b[field] || '';
 
                     // 數字排序
-                    if (field === '等級' || field === 'HP' || field === '基礎經驗' || field === '職業經驗' || field === '最小攻擊' || field === '最大攻擊') {
+                    if (field === 'ID' || field === '等級' || field === 'HP' || field === '基礎經驗' || field === '職業經驗' || field === '最小攻擊' || field === '最大攻擊' || field === '100%命中' || field === '95%迴避') {
                         aVal = parseInt(aVal) || 0;
                         bVal = parseInt(bVal) || 0;
                         return currentSort.direction === 'asc' ? aVal - bVal : bVal - aVal;
