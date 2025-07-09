@@ -1,0 +1,26 @@
+{
+  "name": "ro",
+  "version": "1.0.0",
+  "description": "一個基於 Google 試算表和幻想廳 RO 資料庫的仙境傳說裝備掉落查詢網站，支援多類別裝備和怪物資料搜尋、篩選和排序功能。",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/PascalChang/RO-Paradise.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/PascalChang/RO-Paradise/issues"
+  },
+  "homepage": "https://github.com/PascalChang/RO-Paradise#readme",
+  "dependencies": {
+    "axios": "^1.10.0",
+    "cheerio": "^1.1.0",
+    "fs": "^0.0.1-security",
+    "user-agents": "^1.1.594"
+  }
+}

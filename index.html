@@ -618,8 +618,9 @@
                 </div>
                 <div class="footer-section">
                     <h4>🔄 資料更新</h4>
-                    <p>資料會定期從 Google 試算表同步更新</p>
-                    <p>最後更新時間：<span id="lastUpdateTime">2025年07月08日 上午 9:40</span></p>
+                    <p>裝備資料來源：<a href="https://docs.google.com/spreadsheets/d/1W8vbAFTSxkcCTrkHTSxJcyw92hJLgeTSZImWncjcaps/edit" target="_blank">Google 試算表</a></p>
+                    <p>怪物資料來源：<a href="https://rd.fharr.com/db/monsterlist?v=1&page=1" target="_blank">幻想廳 RO 資料庫</a></p>
+                    <p>最後更新時間：<span id="lastUpdateTime">2025年07月08日 下午 4:30</span></p>
                 </div>
             </div>
         </div>
@@ -641,7 +642,7 @@
             try {
                 const [itemsResponse, monstersResponse] = await Promise.all([
                     fetch('src/data/items.json'),
-                    fetch('src/data/monsters.json')
+                    fetch('src/data/monsters_updated.json')
                 ]);
                 
                 allItems = await itemsResponse.json();
